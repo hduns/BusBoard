@@ -15,3 +15,14 @@ async function getArrivalsFromTfl(stopPointId) {
 const busStopCode = '490008660N'
 
 const lineName = (await getArrivalsFromTfl(busStopCode))[0].lineName;
+
+async function getBusStopArrivals(busStopCode) {
+    let busData = await getArrivalsFromTfl(busStopCode);
+    busData.slice(0, 5).forEach(element => {
+        let timeToWait = Math.floor(element.timeToStation /60) 
+        console.log(element.lineName + ', ' + element.towards + ', ' + `${timeToWait} minutes`);
+    });
+}
+
+getBusStopArrivals(busStopCode);
+
