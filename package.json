@@ -1,0 +1,26 @@
+{
+  "name": "busboard",
+  "version": "1.0.0",
+  "description": "",
+  "main": "busboard.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hduns/BusBoard.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hduns/BusBoard/issues"
+  },
+  "homepage": "https://github.com/hduns/BusBoard#readme",
+  "dependencies": {
+    "dotenv": "^16.5.0",
+    "fetch": "^1.1.0",
+    "node": "^22.15.0",
+    "node-fetch": "^3.3.2"
+  }
+}
