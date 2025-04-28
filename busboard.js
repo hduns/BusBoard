@@ -5,6 +5,7 @@ import promptSync from 'prompt-sync';
 
 const prompt = promptSync();
 const api_key = process.env.API_KEY;
+let postcode = '';
 
 config()
 
@@ -32,7 +33,7 @@ async function getBusStopArrivals(busStopCode) {
     try {
         let busData = await getArrivalsFromTfl(busStopCode);
         if(busData.length === 0) {
-            return 'no buses coming'
+            return 'No buses arriving at this time.'
         }
         else {
         busData = busData.sort((a, b) => a.timeToStation - b.timeToStation);
@@ -49,7 +50,7 @@ async function getBusStopArrivals(busStopCode) {
 }
 
 async function getPostCodeData() {
-    let postcode = prompt("Please enter a postcode ");
+    postcode = prompt("Please enter a postcode ");
     postcode = postcode.replaceAll(' ','');
     try {
         let enteredPC = false;
@@ -76,7 +77,6 @@ async function getPostCodeData() {
         
     } catch (err) {
         console.log(err);
-        
     }
 }
 
@@ -102,8 +102,38 @@ async function getNearestStopPoints(coordinates) {
     }
 }
 
-async function getBusStopDirections(busStopCode) {
-    return 'hi';
+async function getBusStopDirections(busStopCode, postcode) {
+    try {
+        const directionResponse = await fetch(`https://api.tfl.gov.uk/Journey/JourneyResults/${postcode}/to/${busStopCode}`);
+        const directionResponseBody = await directionResponse.json();
+
+        if (directionResponseBody.hasOwnProperty('journeys')) {
+            let directions = 'Directions: \n';
+            directions += 'Summary: ' + directionResponseBody.journeys[0].legs[0].instruction.summary + '\n';
+            for (let i = 0; i < directionResponseBody.journeys[0].legs[0].instruction.steps.length; i++) {
+                directions += `${directionResponseBody.journeys[0].legs[0].instruction.steps[i].descriptionHeading.trim()}  ${directionResponseBody.journeys[0].legs[0].instruction.steps[i].description.trim()}. \n`
+            }
+            return directions;
+
+        } else {
+            throw new Error ('No directions found at this time sorry.');
+        }
+
+    } catch (err) {
+        return err;
+    }
+}
+
+function printBusStopInfo(busStopInfo) {
+    for (let busStop in busStopInfo) {
+        console.log();
+        console.log(busStop);
+        console.log(busStopInfo[busStop].Directions);
+        console.log('Arrivals: ');
+        console.log(busStopInfo[busStop].Arrivals);
+        console.log();        
+    }
+
 }
 
 async function transportSpots() {
@@ -118,9 +148,10 @@ async function transportSpots() {
 
         for (let i in busStops) {
             busStopInfo[busStops[i].indicator] = {};
-            busStopInfo[busStops[i].indicator]['Directions'] = await getBusStopDirections(busStops[i].naptanId);
+            busStopInfo[busStops[i].indicator]['Directions'] = await getBusStopDirections(busStops[i].naptanId, postcode);
             busStopInfo[busStops[i].indicator]['Arrivals'] = await getBusStopArrivals(busStops[i].naptanId);
         }
+        printBusStopInfo(busStopInfo)
         return busStopInfo;
     }
     }
