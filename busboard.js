@@ -10,6 +10,7 @@ config()
 
 const busStopCode = '490008660N';
 let stopType = 'NaptanPublicBusCoachTram';
+let postcode = 'fgthjy';
 
 async function getArrivalsFromTfl(stopPointId) {
     try {
@@ -25,6 +26,9 @@ async function getArrivalsFromTfl(stopPointId) {
 async function getBusStopArrivals(busStopCode) {
     try {
         let busData = await getArrivalsFromTfl(busStopCode);
+        if(busData.length == 0) {
+
+        }
         busData = busData.slice(0, 5).map(element => {
             let timeToWait = Math.floor(element.timeToStation / 60);
             return element.lineName + ', ' + element.towards + ', ' + `${timeToWait} minutes`;
@@ -37,13 +41,34 @@ async function getBusStopArrivals(busStopCode) {
 }
 
 async function getPostCodeData() {
-    let postcode = prompt("Please enter a postcode ");
+    //let postcode = prompt("Please enter a postcode ");
+    //postcode = postcode.replaceAll(' ','');
     try {
+       /* let enteredPC = false;
+        let postCodeRegex = '^\w{5,7}$^([Gg][Ii][Rr] 0[Aa]{2})|((([A-Za-z][0-9]{1,2})|(([A-Za-z][A-Ha-hJ-Yj-y][0-9]{1,2})|(([AZa-z][0-9][A-Za-z])|([A-Za-z][A-Ha-hJ-Yj-y][0-9]?[A-Za-z]))))[0-9][A-Za-z]{2})$';
+        while (!(enteredPC)) {
+            if (postcode === 'null' || (!postcode.match(postCodeRegex))) {
+                postcode = prompt("Please enter a valid postcode ");
+                postcode = postcode.replaceAll(' ','');
+            }
+            else if (postcode.match(postCodeRegex)) {
+                enteredPC = true;
+            }
+            
+        } */
+
         const postCodeResponse = await fetch(`https://api.postcodes.io/postcodes/${postcode}/`);
         const postCodeResponseBody = await postCodeResponse.json();
-        return [postCodeResponseBody.result.latitude, postCodeResponseBody.result.longitude];
+        if(postCodeResponseBody.status == 200) {
+            return [postCodeResponseBody.result.latitude, postCodeResponseBody.result.longitude];
+        }
+        else {
+           throw new Error(postCodeResponseBody.status + ' ' + postCodeResponseBody.error);
+        }
+        
     } catch (err) {
-        console.log(err);
+        console.error(err);
+        
     }
 }
 
@@ -65,9 +90,10 @@ async function transportSpots() {
         for (let i in busStops) {
             busStopInfo[busStops[i].indicator] = {};
             busStopInfo[busStops[i].indicator]['Arrivals'] = await getBusStopArrivals(busStops[i].naptanId);
-        };
+        }
         return busStopInfo;
     }
+
     catch (err) {
         console.log(err);
     }
