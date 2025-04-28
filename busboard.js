@@ -35,6 +35,7 @@ async function getBusStopArrivals(busStopCode) {
             return 'no buses coming'
         }
         else {
+        busData = busData.sort((a, b) => a.timeToStation - b.timeToStation);
         busData = busData.slice(0, 5).map(element => {
             let timeToWait = Math.floor(element.timeToStation / 60);
             return element.lineName + ', ' + element.towards + ', ' + `${timeToWait} minutes`;
@@ -101,6 +102,10 @@ async function getNearestStopPoints(coordinates) {
     }
 }
 
+async function getBusStopDirections(busStopCode) {
+    return 'hi';
+}
+
 async function transportSpots() {
     try {
         let coordinates = await getPostCodeData();
@@ -113,6 +118,7 @@ async function transportSpots() {
 
         for (let i in busStops) {
             busStopInfo[busStops[i].indicator] = {};
+            busStopInfo[busStops[i].indicator]['Directions'] = await getBusStopDirections(busStops[i].naptanId);
             busStopInfo[busStops[i].indicator]['Arrivals'] = await getBusStopArrivals(busStops[i].naptanId);
         }
         return busStopInfo;
